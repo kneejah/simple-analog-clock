@@ -9,8 +9,6 @@ static int show_battery_icon   = 1;
 static Window *window;
 static Layer *path_layer;
 
-static InverterLayer *inv_layer;
-
 static GBitmap *battery_images[11];
 static BitmapLayer *battery_layer;
 
@@ -20,6 +18,10 @@ static BitmapLayer *bluetooth_layer;
 static int seconds_angle = 0;
 static int minutes_angle = 0;
 static int hours_angle   = 0;
+
+// various values that will change
+static int showing_info = 0;
+static int is_charging = 0;
 
 static const GPathInfo SECOND_HAND_PATH_POINTS = {
 	2,
@@ -53,7 +55,29 @@ static GPath *second_hand_path;
 static GPath *minute_hand_path;
 static GPath *hour_hand_path;
 
-// This is the layer update callback which is called on render updates
+void on_animation_stopped(Animation *anim, bool finished, void *context) {
+	property_animation_destroy((PropertyAnimation*) anim);
+}
+
+void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int delay) {
+	// declare animation
+	PropertyAnimation *anim = property_animation_create_layer_frame(layer, start, finish);
+ 
+	// set characteristics
+	animation_set_duration((Animation*) anim, duration);
+	animation_set_delay((Animation*) anim, delay);
+
+	// set stopped handler to free memory
+	AnimationHandlers handlers = {
+		// the reference to the stopped handler is the only one in the array
+		.stopped = (AnimationStoppedHandler) on_animation_stopped
+	};
+	animation_set_handlers((Animation*) anim, handlers, NULL);
+
+	// start animation
+	animation_schedule((Animation*) anim);
+}
+
 static void path_layer_update_callback(Layer *me, GContext *ctx) {
 	(void) me;
 
@@ -104,8 +128,60 @@ void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	seconds_angle = (TRIG_MAX_ANGLE / 60) * (tick_time->tm_sec + 90);
 	minutes_angle = (TRIG_MAX_ANGLE / 60) * (tick_time->tm_min + 90);
 	hours_angle   = (TRIG_MAX_ANGLE / 60) * ((tick_time->tm_hour * 5 + (tick_time->tm_min / 12)) + 90);
-
 	layer_mark_dirty(path_layer);
+	
+	if (show_battery_icon == 1 && is_charging == 1) {
+		if (tick_time->tm_sec % 2 == 0) {
+			layer_set_hidden(bitmap_layer_get_layer(battery_layer), 0);
+		}
+		else {
+			layer_set_hidden(bitmap_layer_get_layer(battery_layer), 1);
+		}
+	}
+}
+
+void hide_info_layers(void *data) {
+	Layer *window_layer = window_get_root_layer(window);
+	GRect bounds = layer_get_frame(window_layer);
+
+	// hide the battery layer
+	GRect start = GRect(bounds.size.w - 13 - 5,   5, 13, 9);
+	GRect end   = GRect(bounds.size.w - 13 - 5, -50, 13, 9);
+    animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
+
+	// hide the bluetooth layer
+	GRect start2 = GRect(5,   5, 13, 13);
+	GRect end2   = GRect(5, -50, 13, 13);
+    animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
+
+	showing_info = 0;
+}
+
+void show_info_layers(void) {
+	Layer *window_layer = window_get_root_layer(window);
+	GRect bounds = layer_get_frame(window_layer);
+
+	// show the battery layer
+	GRect start = GRect(bounds.size.w - 13 - 5, -50, 13, 9);
+	GRect end   = GRect(bounds.size.w - 13 - 5,   5, 13, 9);
+    animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
+
+	// show the bluetooth layer
+	GRect start2 = GRect(5, -50, 13, 13);
+	GRect end2   = GRect(5,   5, 13, 13);
+    animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
+
+	// in 3 seconds, make the layers slide away
+	app_timer_register(3000, hide_info_layers, NULL);
+}
+
+void accel_tap_handler(AccelAxisType axis, int32_t direction) {
+	if (showing_info == 1) {
+		return;
+	}
+	showing_info = 1;
+
+	show_info_layers();
 }
 
 void handle_bluetooth(bool connected) {
@@ -116,8 +192,9 @@ void handle_bluetooth(bool connected) {
 void handle_battery(BatteryChargeState charge_state) {
 	int offset = charge_state.charge_percent / 10;
 	bitmap_layer_set_bitmap(battery_layer, battery_images[offset]);
-	// (charge_state.is_charging ? 11 : 0) + min(charge_state.charge_percent / 10, 10)]);
 	layer_set_hidden(bitmap_layer_get_layer(battery_layer), show_battery_icon == 0);
+	
+	is_charging = charge_state.is_charging;
 }
 
 static void init() {
@@ -159,10 +236,10 @@ static void init() {
 	battery_images[8]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_80); 
 	battery_images[9]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_90); 
 	battery_images[10] = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_100); 
-	
+
 	battery_layer = bitmap_layer_create(GRect(bounds.size.w - 13 - 5, 5, 13, 9));
 	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(battery_layer));
-	
+
 	tick_timer_service_subscribe(SECOND_UNIT, (TickHandler) tick_handler);
 
 	battery_state_service_subscribe(&handle_battery);
@@ -170,7 +247,10 @@ static void init() {
 
 	bluetooth_connection_service_subscribe(&handle_bluetooth);
 	handle_bluetooth(bluetooth_connection_service_peek());
-	
+
+	accel_tap_service_subscribe(&accel_tap_handler);
+	hide_info_layers(NULL);
+
 	// load up a value before the first tick
 	time_t temp = time(NULL);
 	struct tm *t = localtime(&temp);
@@ -195,9 +275,8 @@ static void deinit() {
 	layer_destroy(path_layer);
 	window_destroy(window);
 
+	accel_tap_service_unsubscribe();
 	battery_state_service_unsubscribe();
-	tick_timer_service_unsubscribe();
-
 	tick_timer_service_unsubscribe();
 }
 
