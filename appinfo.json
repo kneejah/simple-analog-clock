@@ -18,7 +18,7 @@
                 "menuIcon": true,
                 "type": "png",
                 "name": "MENU_ICON",
-                "file": "images/png.png"
+                "file": "images/menu_icon.png"
             }
         ]
     }
