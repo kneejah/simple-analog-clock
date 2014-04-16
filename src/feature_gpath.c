@@ -1,14 +1,18 @@
 #include "pebble.h"
 
-#define CENTER_X      71
-#define CENTER_Y      71
 #define CIRCLE_RADIUS 69
 
 static int show_second_hand    = 1;
 static int show_bluetooth_icon = 1;
+static int show_battery_icon   = 1;
 
 static Window *window;
 static Layer *path_layer;
+
+static InverterLayer *inv_layer;
+
+static GBitmap *battery_images[11];
+static BitmapLayer *battery_layer;
 
 static GBitmap *bluetooth_images[2];
 static BitmapLayer *bluetooth_layer;
@@ -109,6 +113,13 @@ void handle_bluetooth(bool connected) {
 	layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), show_bluetooth_icon == 0);
 }
 
+void handle_battery(BatteryChargeState charge_state) {
+	int offset = charge_state.charge_percent / 10;
+	bitmap_layer_set_bitmap(battery_layer, battery_images[offset]);
+	// (charge_state.is_charging ? 11 : 0) + min(charge_state.charge_percent / 10, 10)]);
+	layer_set_hidden(bitmap_layer_get_layer(battery_layer), show_battery_icon == 0);
+}
+
 static void init() {
 	window = window_create();
 	window_stack_push(window, true);
@@ -137,7 +148,25 @@ static void init() {
 	bluetooth_layer = bitmap_layer_create(GRect(5, 5, 13, 13));
 	layer_add_child(window_layer, bitmap_layer_get_layer(bluetooth_layer));
 
+	battery_images[0]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_0);
+	battery_images[1]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_10); 
+	battery_images[2]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_20); 
+	battery_images[3]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_30); 
+	battery_images[4]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_40); 
+	battery_images[5]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_50); 
+	battery_images[6]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_60); 
+	battery_images[7]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_70); 
+	battery_images[8]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_80); 
+	battery_images[9]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_90); 
+	battery_images[10] = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_100); 
+	
+	battery_layer = bitmap_layer_create(GRect(bounds.size.w - 13 - 5, 5, 13, 9));
+	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(battery_layer));
+	
 	tick_timer_service_subscribe(SECOND_UNIT, (TickHandler) tick_handler);
+
+	battery_state_service_subscribe(&handle_battery);
+	handle_battery(battery_state_service_peek());
 
 	bluetooth_connection_service_subscribe(&handle_bluetooth);
 	handle_bluetooth(bluetooth_connection_service_peek());
@@ -153,12 +182,21 @@ static void deinit() {
 	gpath_destroy(minute_hand_path);
 	gpath_destroy(hour_hand_path);
 
+	bitmap_layer_destroy(battery_layer);
+	for (int i = 0; i < 11; i++) {
+		gbitmap_destroy(battery_images[i]);
+	}
+
 	bitmap_layer_destroy(bluetooth_layer);
-	gbitmap_destroy(bluetooth_images[0]);
-	gbitmap_destroy(bluetooth_images[1]);
+	for (int i = 0; i < 2; i++) {
+		gbitmap_destroy(bluetooth_images[i]);
+	}
 
 	layer_destroy(path_layer);
 	window_destroy(window);
+
+	battery_state_service_unsubscribe();
+	tick_timer_service_unsubscribe();
 
 	tick_timer_service_unsubscribe();
 }

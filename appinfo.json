@@ -16,6 +16,61 @@
         "media": [
             {
                 "type": "png",
+                "name": "BATTERY_IMAGE_100",
+                "file": "images/battery_100.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_90",
+                "file": "images/battery_90.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_80",
+                "file": "images/battery_80.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_70",
+                "file": "images/battery_70.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_60",
+                "file": "images/battery_60.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_50",
+                "file": "images/battery_50.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_40",
+                "file": "images/battery_40.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_30",
+                "file": "images/battery_30.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_20",
+                "file": "images/battery_20.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_10",
+                "file": "images/battery_10.png"
+            },
+            {
+                "type": "png",
+                "name": "BATTERY_IMAGE_0",
+                "file": "images/battery_0.png"
+            },
+            {
+                "type": "png",
                 "name": "BLUETOOTH_IMAGE_ON",
                 "file": "images/bluetooth_on.png"
             },
