@@ -1,0 +1,25 @@
+{
+    "versionLabel": "1.0",
+    "uuid": "6e68a5cf-ab05-443a-a131-7b866614e4d9",
+    "appKeys": {},
+    "longName": "SimpleAnalogClock",
+    "versionCode": 1,
+    "capabilities": [
+        ""
+    ],
+    "shortName": "SimpleAnalogClock",
+    "companyName": "kneejah",
+    "watchapp": {
+        "watchface": true
+    },
+    "resources": {
+        "media": [
+            {
+                "menuIcon": true,
+                "type": "png",
+                "name": "MENU_ICON",
+                "file": "images/png.png"
+            }
+        ]
+    }
+}
