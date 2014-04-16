@@ -147,12 +147,12 @@ void hide_info_layers(void *data) {
 	// hide the battery layer
 	GRect start = GRect(bounds.size.w - 13 - 5,   5, 13, 9);
 	GRect end   = GRect(bounds.size.w - 13 - 5, -50, 13, 9);
-    animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
+	animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
 
 	// hide the bluetooth layer
 	GRect start2 = GRect(5,   5, 13, 13);
 	GRect end2   = GRect(5, -50, 13, 13);
-    animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
+	animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
 
 	showing_info = 0;
 }
@@ -164,12 +164,12 @@ void show_info_layers(void) {
 	// show the battery layer
 	GRect start = GRect(bounds.size.w - 13 - 5, -50, 13, 9);
 	GRect end   = GRect(bounds.size.w - 13 - 5,   5, 13, 9);
-    animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
+	animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
 
 	// show the bluetooth layer
 	GRect start2 = GRect(5, -50, 13, 13);
 	GRect end2   = GRect(5,   5, 13, 13);
-    animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
+	animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
 
 	// in 3 seconds, make the layers slide away
 	app_timer_register(3000, hide_info_layers, NULL);
