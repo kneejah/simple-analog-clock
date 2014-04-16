@@ -15,6 +15,16 @@
     "resources": {
         "media": [
             {
+                "type": "png",
+                "name": "BLUETOOTH_IMAGE_ON",
+                "file": "images/bluetooth_on.png"
+            },
+            {
+                "type": "png",
+                "name": "BLUETOOTH_IMAGE_OFF",
+                "file": "images/bluetooth_off.png"
+            },
+            {
                 "menuIcon": true,
                 "type": "png",
                 "name": "MENU_ICON",

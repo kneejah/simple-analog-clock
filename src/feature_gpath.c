@@ -4,12 +4,14 @@
 #define CENTER_Y      71
 #define CIRCLE_RADIUS 69
 
-static int show_second_hand = 1;
+static int show_second_hand    = 1;
+static int show_bluetooth_icon = 1;
 
 static Window *window;
 static Layer *path_layer;
 
 static GBitmap *bluetooth_images[2];
+static BitmapLayer *bluetooth_layer;
 
 static int seconds_angle = 0;
 static int minutes_angle = 0;
@@ -91,7 +93,7 @@ static void path_layer_update_callback(Layer *me, GContext *ctx) {
 
 	// inner circle
 	graphics_context_set_fill_color(ctx, GColorBlack);
-	graphics_fill_circle(ctx, center, 1);
+	graphics_fill_circle(ctx, center, 2);
 }
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -100,6 +102,11 @@ void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	hours_angle   = (TRIG_MAX_ANGLE / 60) * ((tick_time->tm_hour * 5 + (tick_time->tm_min / 12)) + 90);
 
 	layer_mark_dirty(path_layer);
+}
+
+void handle_bluetooth(bool connected) {
+	bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_images[connected ? 1 : 0]);
+	layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), show_bluetooth_icon == 0);
 }
 
 static void init() {
@@ -124,8 +131,17 @@ static void init() {
 	gpath_move_to(minute_hand_path, center);
 	gpath_move_to(hour_hand_path,   center);
 
+	// set up bluetooth icons
+	bluetooth_images[0] = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_IMAGE_OFF);
+	bluetooth_images[1] = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_IMAGE_ON);
+	bluetooth_layer = bitmap_layer_create(GRect(5, 5, 13, 13));
+	layer_add_child(window_layer, bitmap_layer_get_layer(bluetooth_layer));
+
 	tick_timer_service_subscribe(SECOND_UNIT, (TickHandler) tick_handler);
 
+	bluetooth_connection_service_subscribe(&handle_bluetooth);
+	handle_bluetooth(bluetooth_connection_service_peek());
+	
 	// load up a value before the first tick
 	time_t temp = time(NULL);
 	struct tm *t = localtime(&temp);
@@ -136,6 +152,10 @@ static void deinit() {
 	gpath_destroy(second_hand_path);
 	gpath_destroy(minute_hand_path);
 	gpath_destroy(hour_hand_path);
+
+	bitmap_layer_destroy(bluetooth_layer);
+	gbitmap_destroy(bluetooth_images[0]);
+	gbitmap_destroy(bluetooth_images[1]);
 
 	layer_destroy(path_layer);
 	window_destroy(window);
