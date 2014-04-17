@@ -150,8 +150,8 @@ void hide_info_layers(void *data) {
 	animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
 
 	// hide the bluetooth layer
-	GRect start2 = GRect(5,   5, 13, 13);
-	GRect end2   = GRect(5, -50, 13, 13);
+	GRect start2 = GRect(5,   5, 15, 15);
+	GRect end2   = GRect(5, -50, 15, 15);
 	animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
 
 	showing_info = 0;
@@ -167,8 +167,8 @@ void show_info_layers(void) {
 	animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
 
 	// show the bluetooth layer
-	GRect start2 = GRect(5, -50, 13, 13);
-	GRect end2   = GRect(5,   5, 13, 13);
+	GRect start2 = GRect(5, -50, 15, 15);
+	GRect end2   = GRect(5,   5, 15, 15);
 	animate_layer(bitmap_layer_get_layer(bluetooth_layer), &start2, &end2, 500, 0);
 
 	// in 3 seconds, make the layers slide away
@@ -222,7 +222,7 @@ static void init() {
 	// set up bluetooth icons
 	bluetooth_images[0] = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_IMAGE_OFF);
 	bluetooth_images[1] = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_IMAGE_ON);
-	bluetooth_layer = bitmap_layer_create(GRect(5, 5, 13, 13));
+	bluetooth_layer = bitmap_layer_create(GRect(5, 5, 15, 15));
 	layer_add_child(window_layer, bitmap_layer_get_layer(bluetooth_layer));
 
 	battery_images[0]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_0);
