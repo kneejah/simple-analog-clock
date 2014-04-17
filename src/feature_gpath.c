@@ -145,8 +145,8 @@ void hide_info_layers(void *data) {
 	GRect bounds = layer_get_frame(window_layer);
 
 	// hide the battery layer
-	GRect start = GRect(bounds.size.w - 13 - 5,   5, 13, 9);
-	GRect end   = GRect(bounds.size.w - 13 - 5, -50, 13, 9);
+	GRect start = GRect(bounds.size.w - 15 - 5,   5, 15, 11);
+	GRect end   = GRect(bounds.size.w - 15 - 5, -50, 15, 11);
 	animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
 
 	// hide the bluetooth layer
@@ -162,8 +162,8 @@ void show_info_layers(void) {
 	GRect bounds = layer_get_frame(window_layer);
 
 	// show the battery layer
-	GRect start = GRect(bounds.size.w - 13 - 5, -50, 13, 9);
-	GRect end   = GRect(bounds.size.w - 13 - 5,   5, 13, 9);
+	GRect start = GRect(bounds.size.w - 15 - 5, -50, 15, 11);
+	GRect end   = GRect(bounds.size.w - 15 - 5,   5, 15, 11);
 	animate_layer(bitmap_layer_get_layer(battery_layer), &start, &end, 500, 0);
 
 	// show the bluetooth layer
@@ -237,7 +237,7 @@ static void init() {
 	battery_images[9]  = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_90); 
 	battery_images[10] = gbitmap_create_with_resource(RESOURCE_ID_BATTERY_IMAGE_100); 
 
-	battery_layer = bitmap_layer_create(GRect(bounds.size.w - 13 - 5, 5, 13, 9));
+	battery_layer = bitmap_layer_create(GRect(bounds.size.w - 15 - 5, 5, 15, 11));
 	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(battery_layer));
 
 	tick_timer_service_subscribe(SECOND_UNIT, (TickHandler) tick_handler);
